@@ -1,0 +1,39 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('strukturs', function (Blueprint $table) {
+            $table->id();
+            $table->string('kode')->unique(); // e.g. kadisinfolahtaau, setdis, bagum
+            $table->string('nama_jabatan'); // e.g. KADISINFOLAHTAAU
+            $table->string('nama_lengkap_jabatan'); // Full name of the position
+            $table->string('unit')->nullable(); // Unit kerja
+            $table->string('nama_pejabat')->nullable();
+            $table->string('pangkat')->nullable();
+            $table->string('nrp')->nullable();
+            $table->date('tanggal_lahir')->nullable();
+            $table->string('foto')->nullable();
+            $table->string('parent_kode')->nullable(); // parent position code
+            $table->integer('urutan')->default(0); // display order
+            $table->boolean('is_active')->default(true);
+            $table->timestamps();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('strukturs');
+    }
+};

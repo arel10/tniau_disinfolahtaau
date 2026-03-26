@@ -1,0 +1,74 @@
+@extends('layouts.admin')
+@section('title', 'Riwayat Revisi Sejarah PIA')
+@section('page-title', 'Riwayat Revisi Sejarah PIA')
+
+@push('styles')
+<style>
+    .setting-card { border:none; box-shadow:0 2px 12px rgba(0,61,130,0.10); border-radius:12px; }
+    .setting-card .card-header { background:linear-gradient(135deg,#001f3f 0%,#003d82 100%); color:white; border-radius:12px 12px 0 0 !important; padding:16px 24px; }
+    .setting-card .card-header h6 { color:white !important; }
+</style>
+@endpush
+
+@section('content')
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-xl-10 col-lg-12">
+
+            <div class="d-flex align-items-center mb-4 gap-3">
+                <div style="background:linear-gradient(135deg,#001f3f,#0066cc);border-radius:10px;width:48px;height:48px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <i class="fas fa-clock-rotate-left text-white fa-lg"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <h4 class="mb-0 fw-bold text-dark">Riwayat Revisi Sejarah PIA</h4>
+                    <small class="text-muted">Lihat riwayat perubahan sejarah PIA.</small>
+                </div>
+                <a href="{{ route('admin.pia.index') }}" class="ms-auto" style="width:36px;height:36px;border-radius:50%;background:#e9ecef;border:none;color:#555;display:flex;align-items:center;justify-content:center;font-size:1.1rem;text-decoration:none;transition:background 0.2s;flex-shrink:0;" onmouseover="this.style.background='#d0d7e2'" onmouseout="this.style.background='#e9ecef'"><i class="fas fa-times"></i></a>
+            </div>
+
+            <div class="card setting-card">
+                <div class="card-header">
+                    <h6 class="mb-0 fw-bold"><i class="fas fa-history me-2"></i>Riwayat Revisi</h6>
+                </div>
+                <div class="card-body p-0">
+                    @if($revisions->count())
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead>
+                                <tr style="background:linear-gradient(135deg,#001f3f,#003d82);color:white;">
+                                    <th style="width:50px;padding:14px 20px;">#</th>
+                                    <th style="padding:14px 16px;">Judul Lama</th>
+                                    <th style="padding:14px 16px;">Konten Lama</th>
+                                    <th style="padding:14px 16px;">Diedit Oleh</th>
+                                    <th style="padding:14px 16px;">Tanggal Edit</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($revisions as $rev)
+                                <tr>
+                                    <td class="ps-4">{{ $loop->iteration + ($revisions->currentPage() - 1) * $revisions->perPage() }}</td>
+                                    <td class="fw-semibold">{{ $rev->old_history_title ?? '-' }}</td>
+                                    <td>
+                                        <div style="max-width:400px;max-height:100px;overflow:auto;font-size:0.85rem;color:#555;">
+                                            {{ Str::limit($rev->old_history_content, 200) }}
+                                        </div>
+                                    </td>
+                                    <td>{{ $rev->editor ? $rev->editor->name : '-' }}</td>
+                                    <td>{{ $rev->edited_at->format('d M Y H:i') }}</td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="d-flex flex-column align-items-center py-3 gap-2">
+                        <div>{{ $revisions->links() }}</div>
+                    </div>
+                    @else
+                    <div class="text-center text-muted py-5"><i class="fas fa-inbox fa-2x d-block mb-2 opacity-50"></i>Belum ada riwayat revisi.</div>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
