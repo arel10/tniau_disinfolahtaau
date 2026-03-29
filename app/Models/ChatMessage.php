@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Casts\EncryptedStringCast;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -19,6 +20,7 @@ class ChatMessage extends Model
 
     protected $casts = [
         'is_read' => 'boolean',
+        'message' => EncryptedStringCast::class,
     ];
 
     public function chatSession()
