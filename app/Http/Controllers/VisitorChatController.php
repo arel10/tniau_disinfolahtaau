@@ -30,6 +30,7 @@ class VisitorChatController extends Controller
         }
 
         $session->applyLifecycleTransitions();
+        $this->restoreVisibilityIfAdminReplied($session);
 
         // Hidden sessions should never be shown again in visitor widget.
         $isHidden = $session->hidden_for_visitor ?? false;
@@ -62,10 +63,12 @@ class VisitorChatController extends Controller
         }
         if ($session) {
             $session->applyLifecycleTransitions();
+            $this->restoreVisibilityIfAdminReplied($session);
         }
 
-        // Hidden sessions should always start fresh from visitor side
+        // Hidden sessions should start fresh only when there is no new admin reply.
         if ($session && !$session->isFinished()) {
+            $this->restoreVisibilityIfAdminReplied($session);
             $isHidden = $session->hidden_for_visitor ?? false;
             if ($isHidden) {
                 Log::debug('VisitorChatController@startOrResume: rejecting hidden session', ['session_id' => $session->id]);
@@ -217,6 +220,7 @@ class VisitorChatController extends Controller
         }
 
         $session->applyLifecycleTransitions();
+        $this->restoreVisibilityIfAdminReplied($session);
 
         // Hidden sessions should not be rendered on visitor side.
         $isHidden = $session->hidden_for_visitor ?? false;
@@ -366,6 +370,45 @@ class VisitorChatController extends Controller
         }
 
         return $token;
+    }
+
+    /**
+     * If visitor chat is hidden, make it visible again when admin has replied
+     * after visitor last seen timestamp.
+     */
+    private function restoreVisibilityIfAdminReplied(ChatSession $session): void
+    {
+        if (($session->hidden_for_visitor ?? false) !== true) {
+            return;
+        }
+
+        if ($session->isFinished() || empty($session->last_reply_by_admin_at)) {
+            return;
+        }
+
+        $visitorSawLatestReply = !empty($session->last_seen_by_visitor_at)
+            && $session->last_seen_by_visitor_at->greaterThanOrEqualTo($session->last_reply_by_admin_at);
+
+        if ($visitorSawLatestReply) {
+            return;
+        }
+
+        // Only restore when there is a NEW admin reply after chat became hidden.
+        // This keeps history hidden when visitor returns after >2 minutes,
+        // and re-opens it only after admin sends a fresh message.
+        if (!empty($session->visitor_left_page_at)) {
+            if (!$session->last_reply_by_admin_at->greaterThan($session->visitor_left_page_at)) {
+                return;
+            }
+        }
+
+        $session->showForVisitor();
+
+        if ($session->status === ChatSession::STATUS_INACTIVE) {
+            $session->touchActivity(ChatSession::STATUS_ACTIVE);
+        } else {
+            $session->refresh();
+        }
     }
 
     /**

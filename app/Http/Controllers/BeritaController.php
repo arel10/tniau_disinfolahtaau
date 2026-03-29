@@ -59,13 +59,15 @@ class BeritaController extends Controller
      */
     public function show($slug)
     {
+        $request = request();
         $berita = Berita::with(['kategori', 'user'])
             ->where('slug', $slug)
             ->published()
             ->firstOrFail();
 
         // Increment views
-        $berita->incrementViews();
+        $visitorKey = $request->ip() . '|' . ($request->userAgent() ?? 'unknown-agent');
+        $berita->incrementViews($visitorKey);
 
         // Berita terkait (kategori yang sama)
         $berita_terkait = Berita::with(['kategori', 'user'])

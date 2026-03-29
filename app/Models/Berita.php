@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Cache;
 use App\Traits\HasTranslation;
 
 class Berita extends Model
@@ -91,8 +92,18 @@ class Berita extends Model
     }
 
     // Increment view count
-    public function incrementViews()
+    public function incrementViews(?string $visitorKey = null)
     {
+        if ($visitorKey) {
+            $cacheKey = 'berita_viewed:' . $this->id . ':' . sha1($visitorKey) . ':' . now()->toDateString();
+            $ttl = now()->endOfDay();
+
+            // Only count once per visitor per news per day.
+            if (!Cache::add($cacheKey, 1, $ttl)) {
+                return;
+            }
+        }
+
         $this->increment('views');
     }
 }

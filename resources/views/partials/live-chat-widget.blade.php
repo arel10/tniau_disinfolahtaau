@@ -192,7 +192,7 @@
     // How long to protect the UI after a user explicitly clicks the toggle (ms)
     const USER_CLICK_PROTECTION_MS = 2000; // 2 seconds (was 500ms)
     const IDLE_TIMEOUT_MS = 120000; // 2 minutes
-    const BROWSER_CLOSE_RESET_MS = 20 * 60 * 1000; // 20 minutes
+    const BROWSER_CLOSE_RESET_MS = 2 * 60 * 1000; // 2 minutes
     const CHAT_LAST_CLOSED_AT_KEY = 'livechat_last_closed_at';
 
     function setUnread(count) {
@@ -213,14 +213,17 @@
         const row = document.createElement('div');
         row.className = 'chat-msg ' + msg.sender_type;
         row.setAttribute('data-message-id', msg.id);
-        // Prefer server-provided time string, otherwise compute from ISO timestamp to match visitor local time
-        let timeStr = msg.time || '';
+        // Always compute local time from ISO timestamp so time is accurate on visitor device.
+        let timeStr = '';
         try {
-            if (!timeStr && msg.created_at) {
+            if (msg.created_at) {
                 const d = new Date(msg.created_at);
-                timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
             }
         } catch (e) { /* ignore */ }
+        if (!timeStr) {
+            timeStr = msg.time || '';
+        }
         row.innerHTML = '<div class="bubble">' + msg.message + '</div><div class="time">' + timeStr + '</div>';
         messagesEl.appendChild(row);
         messagesEl.scrollTop = messagesEl.scrollHeight;
@@ -286,27 +289,13 @@
         }
     }
 
-    function resetVisitorLinkageOnServer() {
-        return fetch('/livechat/reset', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': csrf,
-                'Accept': 'application/json'
-            },
-            credentials: 'same-origin',
-            body: JSON.stringify({ reason: 'browser_closed_timeout' })
-        }).catch(() => null);
-    }
-
     function maybeResetAfterLongBrowserClose() {
         const closedAt = getRememberedBrowserCloseAt();
         if (!closedAt) return;
 
         const elapsed = Date.now() - closedAt;
         if (elapsed >= BROWSER_CLOSE_RESET_MS) {
-            // Reset visitor-side linkage only; DB chat remains for admin history/reply.
-            resetVisitorLinkageOnServer();
+            // Reset only local widget UI; keep token so admin replies can reopen history.
             resetToInitialState();
         }
 

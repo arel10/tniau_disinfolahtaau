@@ -1801,6 +1801,11 @@
 
         <!-- Live Clock & Date Script -->
         <script>
+            // Localized day/month names from lang files (stored as JSON strings in translations)
+            // Decode the JSON string in PHP, then emit as a JS array literal.
+            const days = @json(json_decode(__('messages.days_json'), true));
+            const months = @json(json_decode(__('messages.months_json'), true));
+
             function updateHeaderClock() {
                 const now = new Date();
 

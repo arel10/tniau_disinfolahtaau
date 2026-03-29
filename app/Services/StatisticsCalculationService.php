@@ -69,10 +69,13 @@ class StatisticsCalculationService
 
         // Get baselines from database (these are the manually-set starting points)
         $baseline = StatisticsBaseline::getBaseline('visitor_harian');
+        $baselineKemarin = StatisticsBaseline::getBaseline('visitor_kemarin');
         $baselineMingguan = StatisticsBaseline::getBaseline('visitor_mingguan');
         $baselineBulanan = StatisticsBaseline::getBaseline('visitor_bulanan');
         $baselineTahunan = StatisticsBaseline::getBaseline('visitor_tahunan');
         $baselineTotal = StatisticsBaseline::getBaseline('visitor_total');
+        $baselineViewsHarian = StatisticsBaseline::getBaseline('views_harian');
+        $baselineViewsTotal = StatisticsBaseline::getBaseline('views_total');
 
         // Key principle: real_count (from DB) + baseline (manually set starting point) = display value
         // This ensures:
@@ -82,13 +85,13 @@ class StatisticsCalculationService
 
         return [
             'visitHariIni' => max(0, ($raw['visitHariIni'] ?? 0) + $baseline),
-            'visitKemarin' => max(0, ($raw['visitKemarin'] ?? 0) + $baseline),
+            'visitKemarin' => max(0, ($raw['visitKemarin'] ?? 0) + $baselineKemarin),
             'visitMingguIni' => max(0, ($raw['visitMingguIni'] ?? 0) + $baselineMingguan),
             'visitBulanIni' => max(0, ($raw['visitBulanIni'] ?? 0) + $baselineBulanan),
             'visitTahunIni' => max(0, ($raw['visitTahunIni'] ?? 0) + $baselineTahunan),
             'visitTotal' => max(0, ($raw['visitTotal'] ?? 0) + $baselineTotal),
-            'viewsHariIni' => max(0, ($raw['visitHariIni'] ?? 0) + $baseline),
-            'viewsTotal' => max(0, ($raw['visitTotal'] ?? 0) + $baselineTotal),
+            'viewsHariIni' => max(0, ($raw['visitHariIni'] ?? 0) + $baselineViewsHarian),
+            'viewsTotal' => max(0, ($raw['visitTotal'] ?? 0) + $baselineViewsTotal),
         ];
     }
 

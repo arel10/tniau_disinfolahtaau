@@ -17,7 +17,8 @@ class ChatSession extends Model
 
     public const INACTIVE_AFTER_SECONDS = 120;
     public const EXPIRE_AFTER_SECONDS = 1800;
-    public const VISITOR_HIDE_AFTER_SECONDS = 1200;
+    public const VISITOR_HIDE_AFTER_SECONDS = 120;
+    public const ADMIN_REPLY_WAIT_SECONDS = 120;
 
     protected $fillable = [
         'visitor_token',
@@ -77,7 +78,9 @@ class ChatSession extends Model
 
     public function unreadVisitorMessages()
     {
-        return $this->hasMany(ChatMessage::class)->where('sender_type', 'visitor')->where('is_read', false);
+        return $this->hasMany(ChatMessage::class)
+            ->where('sender_type', 'visitor')
+            ->where('is_read', false);
     }
 
     public function isActive(): bool
@@ -102,15 +105,9 @@ class ChatSession extends Model
 
     public function canAdminReply(): bool
     {
-        // Admin may reply to sessions that are not finished (active or inactive),
-        // but cannot reply to expired or closed sessions.
         return !$this->isFinished();
     }
 
-    /**
-     * Hide chat from visitor side (e.g., when visitor is idle or left page)
-     * Marks it as hidden but does NOT delete the record from database
-     */
     public function hideForVisitor(): void
     {
         $data = [];
@@ -126,9 +123,6 @@ class ChatSession extends Model
         }
     }
 
-    /**
-     * Show chat to visitor (e.g., when admin replies after it was hidden)
-     */
     public function showForVisitor(): void
     {
         $data = [];
@@ -144,19 +138,12 @@ class ChatSession extends Model
         }
     }
 
-    /**
-     * Check if chat should be visible to visitor
-     * Returns false if hidden due to inactivity, page leaving, or session finished
-     * (No side effects; check only)
-     */
     public function isVisibleToVisitor(): bool
     {
-        // If explicitly marked as hidden, it's not visible
         if ($this->hasColumn('hidden_for_visitor') && $this->hidden_for_visitor) {
             return false;
         }
 
-        // If session is finished (closed/expired), not visible
         if ($this->isFinished()) {
             return false;
         }
@@ -164,9 +151,6 @@ class ChatSession extends Model
         return true;
     }
 
-    /**
-     * Mark that visitor left page/browser; hide will be applied after timeout.
-     */
     public function markVisitorLeft(): void
     {
         $data = [];
@@ -182,10 +166,6 @@ class ChatSession extends Model
         }
     }
 
-    /**
-     * Track that visitor is currently active on the page with chat open
-     * This records their last activity and unhides the chat if needed
-     */
     public function recordVisitorActivity(): void
     {
         $data = [];
@@ -196,7 +176,7 @@ class ChatSession extends Model
             $data['last_activity_at'] = now();
         }
         if ($this->hasColumn('hidden_for_visitor')) {
-            $data['hidden_for_visitor'] = false; // Unhide when visitor is active
+            $data['hidden_for_visitor'] = false;
         }
         if ($this->hasColumn('visitor_left_page_at')) {
             $data['visitor_left_page_at'] = null;
@@ -207,10 +187,6 @@ class ChatSession extends Model
         }
     }
 
-    /**
-     * Track when admin replies to this chat
-     * This unhides the chat on visitor side so they see the reply
-     */
     public function recordAdminReply(): void
     {
         $data = [];
@@ -220,10 +196,31 @@ class ChatSession extends Model
         if ($this->hasColumn('last_activity_at')) {
             $data['last_activity_at'] = now();
         }
+        if ($this->hasColumn('status')) {
+            $data['status'] = self::STATUS_ACTIVE;
+        }
+        if ($this->hasColumn('hidden_for_visitor')) {
+            $data['hidden_for_visitor'] = false;
+        }
+        if ($this->hasColumn('visitor_left_page_at')) {
+            $data['visitor_left_page_at'] = null;
+        }
 
         if (!empty($data)) {
             $this->forceFill($data)->save();
         }
+    }
+
+    public function hasVisitorReplyAfterLatestAdminReply(): bool
+    {
+        if (!$this->last_reply_by_admin_at) {
+            return true;
+        }
+
+        return $this->messages()
+            ->where('sender_type', 'visitor')
+            ->where('created_at', '>', $this->last_reply_by_admin_at)
+            ->exists();
     }
 
     public function markAsReadByAdmin(): void
@@ -249,9 +246,6 @@ class ChatSession extends Model
         $this->forceFill($data)->save();
     }
 
-    /**
-     * Helper to check whether a DB column exists on the chat_sessions table.
-     */
     private function hasColumn(string $column): bool
     {
         try {
@@ -281,36 +275,48 @@ class ChatSession extends Model
             $this->forceFill(['status' => self::STATUS_INACTIVE])->save();
         }
 
-        // If visitor explicitly left page/browser, auto-hide only after >20 minutes.
         try {
             if ($this->hasColumn('visitor_left_page_at') && $this->visitor_left_page_at) {
                 $sinceLeft = now()->diffInSeconds($this->visitor_left_page_at);
-                if ($sinceLeft >= self::VISITOR_HIDE_AFTER_SECONDS) {
-                    if (!($this->hidden_for_visitor ?? false)) {
-                        $this->hideForVisitor();
-                    }
+                if ($sinceLeft >= self::VISITOR_HIDE_AFTER_SECONDS && !($this->hidden_for_visitor ?? false)) {
+                    $this->hideForVisitor();
                 }
             }
         } catch (\Throwable $e) {
             // ignore
         }
 
-        // If admin replied and visitor had seen the reply, but visitor has been away
-        // for more than VISITOR_HIDE_AFTER_SECONDS, hide the session for visitor.
-        // This covers the case: admin replies -> visitor opens and sees reply -> visitor leaves
-        // without replying; after the timeout we should hide the chat from visitor view.
         try {
             if ($this->last_reply_by_admin_at && $this->last_seen_by_visitor_at) {
                 $sinceSeen = now()->diffInSeconds($this->last_seen_by_visitor_at);
-                // Only hide if visitor saw the admin reply (seen timestamp after reply)
-                if ($sinceSeen >= self::VISITOR_HIDE_AFTER_SECONDS && $this->last_seen_by_visitor_at->greaterThan($this->last_reply_by_admin_at)) {
-                    if (!($this->hidden_for_visitor ?? false)) {
-                        $this->hideForVisitor();
-                    }
+                if (
+                    $sinceSeen >= self::VISITOR_HIDE_AFTER_SECONDS
+                    && $this->last_seen_by_visitor_at->greaterThan($this->last_reply_by_admin_at)
+                    && !($this->hidden_for_visitor ?? false)
+                ) {
+                    $this->hideForVisitor();
                 }
             }
         } catch (\Throwable $e) {
-            // If columns don't exist or comparison fails, ignore and continue
+            // ignore
+        }
+
+        try {
+            if ($this->last_reply_by_admin_at && !$this->hasVisitorReplyAfterLatestAdminReply()) {
+                $sinceAdminReply = now()->diffInSeconds($this->last_reply_by_admin_at);
+                if ($sinceAdminReply >= self::ADMIN_REPLY_WAIT_SECONDS) {
+                    $data = ['status' => self::STATUS_CLOSED];
+                    if ($this->hasColumn('ended_at')) {
+                        $data['ended_at'] = $this->ended_at ?? now();
+                    }
+                    if ($this->hasColumn('hidden_for_visitor')) {
+                        $data['hidden_for_visitor'] = true;
+                    }
+                    $this->forceFill($data)->save();
+                }
+            }
+        } catch (\Throwable $e) {
+            // ignore
         }
     }
 
@@ -323,13 +329,12 @@ class ChatSession extends Model
 
     public function scopeUnread($query)
     {
-        return $query->where(function ($q) use ($query) {
+        return $query->where(function ($q) {
             $q->whereNull('admin_read_at')
                 ->orWhereHas('messages', function ($mq) {
                     $mq->where('sender_type', 'visitor')->where('is_read', false);
                 });
 
-            // If the schema has hidden_for_visitor flag, consider hidden sessions as unread
             try {
                 if (Schema::hasColumn((new self())->getTable(), 'hidden_for_visitor')) {
                     $q->orWhere('hidden_for_visitor', true);
