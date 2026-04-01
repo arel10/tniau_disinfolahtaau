@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Casts\EncryptedStringCast;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -15,6 +16,11 @@ class Kontak extends Model
         'subjek',
         'pesan',
         'status',
+    ];
+
+    protected $casts = [
+        // Encrypt message body at rest while keeping backward compatibility.
+        'pesan' => EncryptedStringCast::class,
     ];
 
     // Scope untuk pesan baru

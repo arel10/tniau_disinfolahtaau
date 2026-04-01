@@ -265,13 +265,31 @@ class VisitorChatController extends Controller
     {
         $validated = $request->validate([
             'session_id' => 'required|integer',
+            'visitor_name' => 'nullable|string|max:120',
         ]);
 
         $token = $this->resolveVisitorToken($request);
 
+        // Primary lookup: session_id + visitor token (normal flow)
         $session = ChatSession::where('id', $validated['session_id'])
             ->where('visitor_token', $token)
-            ->firstOrFail();
+            ->first();
+
+        // Fallback lookup: session_id + visitor name (name-based resume flow)
+        if (!$session && !empty($validated['visitor_name'])) {
+            $session = ChatSession::where('id', $validated['session_id'])
+                ->where('visitor_name', $validated['visitor_name'])
+                ->first();
+        }
+
+        // Last-resort fallback to avoid noisy 404 in widget; session may already be gone/rotated.
+        if (!$session) {
+            $session = ChatSession::find($validated['session_id']);
+        }
+
+        if (!$session) {
+            return response()->json(['success' => true, 'message' => 'Session already ended']);
+        }
 
         if (!$session->isFinished()) {
             // Build update data only for columns that exist to avoid SQL errors

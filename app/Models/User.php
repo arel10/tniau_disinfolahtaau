@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Casts\EncryptedStringCast;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -55,6 +56,7 @@ class User extends Authenticatable
             'email_verified_at'         => 'datetime',
             'otp_expires_at'            => 'datetime',
             'password'                  => 'hashed',
+            'phone'                     => EncryptedStringCast::class,
             'two_factor_secret'         => 'encrypted',
             'two_factor_recovery_codes' => 'encrypted:array',
             'two_factor_confirmed_at'   => 'datetime',

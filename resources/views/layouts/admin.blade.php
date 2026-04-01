@@ -142,8 +142,8 @@
         .sidebar-toggle {
             display: none;
             position: fixed;
-            top: 18px;
-            left: 15px;
+            top: 10px;
+            left: 8px;
             z-index: 1050;
             background: var(--primary-color);
             color: white;
@@ -167,6 +167,7 @@
         @media (max-width: 991.98px) {
             .sidebar-toggle { display: block; }
             .sidebar {
+                width: min(86vw, 320px);
                 transform: translateX(-100%);
                 transition: transform 0.3s ease;
             }
@@ -174,16 +175,120 @@
             .main-content {
                 margin-left: 0 !important;
             }
-            .top-navbar h5 { margin-left: 40px; }
-            .top-navbar .d-flex { flex-wrap: wrap; gap: 8px; }
+            .top-navbar h5 { margin-left: 40px; font-size: 1.05rem; }
+            .top-navbar .d-flex {
+                flex-wrap: nowrap;
+                gap: 10px;
+                align-items: center !important;
+            }
+
+            .top-navbar h5 {
+                flex: 1 1 auto;
+                min-width: 0;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .top-navbar .dropdown {
+                margin-left: auto;
+                flex: 0 0 auto;
+            }
+
+            .main-content .container,
+            .main-content .container-fluid {
+                padding-left: 0;
+                padding-right: 0;
+            }
+
+            .card-body {
+                padding: 0.85rem;
+            }
+
+            .table-responsive {
+                border-radius: 10px;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .table-responsive table {
+                min-width: 680px;
+            }
+
+            .main-content .d-flex.gap-2,
+            .main-content .d-flex.gap-3 {
+                flex-wrap: wrap;
+            }
         }
         @media (max-width: 575.98px) {
             .main-content { padding: 12px; }
             .top-navbar { padding: 10px 15px; margin: -12px -12px 12px -12px; }
             .top-navbar h5 { font-size: 1rem; }
+            .top-navbar .dropdown .btn {
+                font-size: 0.84rem;
+                padding: 6px 10px;
+                width: auto;
+            }
+
+            .sidebar .logo img {
+                height: 48px !important;
+                margin-bottom: 8px !important;
+            }
+            .sidebar .logo h5 {
+                font-size: 0.9rem;
+            }
+            .sidebar .nav-link {
+                padding: 10px 14px;
+                font-size: 0.88rem;
+            }
+
+            .card-header,
+            .card-footer {
+                padding: 0.7rem 0.85rem;
+            }
+
+            .form-control,
+            .form-select,
+            .form-label,
+            textarea,
+            input,
+            select {
+                font-size: 0.9rem;
+            }
+
+            .input-group > .btn {
+                white-space: nowrap;
+            }
+
             .btn-sm { padding: 3px 8px; font-size: 0.72rem; }
             .btn { padding: 4px 10px; font-size: 0.8rem; }
             .table-responsive .btn, .card .btn { padding: 3px 8px; font-size: 0.72rem; }
+
+            .main-content .btn-group,
+            .main-content .btn-toolbar {
+                flex-wrap: wrap;
+            }
+
+            /* Keep visual content inside mobile frame on admin pages */
+            .main-content {
+                overflow-x: hidden;
+            }
+            .main-content img,
+            .main-content svg,
+            .main-content canvas,
+            .main-content iframe,
+            .main-content video {
+                max-width: 100%;
+                height: auto;
+            }
+            .main-content .org-chart-scroll,
+            .main-content .diagram-scroll,
+            .main-content .chart-scroll {
+                max-width: 100%;
+            }
+
+            .modal-dialog {
+                margin: 0.5rem;
+            }
         }
     </style>
     @stack('styles')
@@ -470,10 +575,12 @@
             function openSidebar() {
                 sidebar.classList.add('show');
                 overlay.classList.add('show');
+                document.body.style.overflow = 'hidden';
             }
             function closeSidebar() {
                 sidebar.classList.remove('show');
                 overlay.classList.remove('show');
+                document.body.style.overflow = '';
             }
 
             toggle.addEventListener('click', function() {
@@ -488,6 +595,13 @@
             // Close on ESC
             document.addEventListener('keydown', function(e) {
                 if (e.key === 'Escape') closeSidebar();
+            });
+
+            // Ensure state is reset when returning to desktop size
+            window.addEventListener('resize', function() {
+                if (window.innerWidth > 991.98) {
+                    closeSidebar();
+                }
             });
 
             // Close sidebar when clicking a nav link (mobile)

@@ -11,6 +11,7 @@
     .form-label { font-weight:600; color:#003d82; }
     .btn-simpan { background:linear-gradient(135deg,#001f3f 0%,#0066cc 100%); color:white; font-weight:700; padding:10px 36px; border-radius:8px; font-size:1rem; border:none; transition:transform 0.15s, box-shadow 0.15s; }
     .btn-simpan:hover { color:#fff; transform:translateY(-2px); box-shadow:0 6px 20px rgba(0,61,130,0.35); }
+    .btn-pilih-file { border-radius:8px; }
 </style>
 @endpush
 
@@ -59,7 +60,13 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Foto / Video</label>
-                            <input type="file" name="files[]" class="form-control @error('files') is-invalid @enderror @error('files.*') is-invalid @enderror" accept="image/*,video/*" multiple>
+                            <input type="file" id="filesInput" name="files[]" class="d-none @error('files') is-invalid @enderror @error('files.*') is-invalid @enderror" accept="image/*,video/*" multiple>
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <button type="button" class="btn btn-outline-primary btn-sm btn-pilih-file" onclick="document.getElementById('filesInput').click()">
+                                    <i class="fas fa-images me-1"></i> Pilih Foto / Video
+                                </button>
+                                <small id="filesInfo" class="text-muted">Belum ada file dipilih</small>
+                            </div>
                             <small class="text-muted">Bisa pilih banyak foto/video sekaligus. Format: JPG, PNG, GIF, WEBP, MP4, MOV, AVI, MKV (Ukuran bebas)</small>
                             @error('files')<div class="invalid-feedback">{{ $message }}</div>@enderror
                             @error('files.*')<div class="invalid-feedback">{{ $message }}</div>@enderror
@@ -91,5 +98,28 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    (function () {
+        var input = document.getElementById('filesInput');
+        var info = document.getElementById('filesInfo');
+        if (!input || !info) return;
+
+        input.addEventListener('change', function () {
+            var count = input.files ? input.files.length : 0;
+            if (!count) {
+                info.textContent = 'Belum ada file dipilih';
+                return;
+            }
+            if (count === 1) {
+                info.textContent = input.files[0].name;
+                return;
+            }
+            info.textContent = count + ' file dipilih';
+        });
+    })();
+</script>
+@endpush
 
 

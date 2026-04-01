@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Casts\EncryptedStringCast;
 use Illuminate\Database\Eloquent\Model;
 
 class LoginAttempt extends Model
@@ -19,6 +20,7 @@ class LoginAttempt extends Model
     protected function casts(): array
     {
         return [
+            'user_agent'   => EncryptedStringCast::class,
             'successful'   => 'boolean',
             'attempted_at' => 'datetime',
         ];

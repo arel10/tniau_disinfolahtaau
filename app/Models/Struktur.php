@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Casts\EncryptedStringCast;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -27,6 +28,9 @@ class Struktur extends Model
     ];
 
     protected $casts = [
+        'nama_pejabat' => EncryptedStringCast::class,
+        'pangkat' => EncryptedStringCast::class,
+        'nrp' => EncryptedStringCast::class,
         'tanggal_lahir' => 'date',
         'is_active' => 'boolean',
     ];

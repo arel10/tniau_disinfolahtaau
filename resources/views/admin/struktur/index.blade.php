@@ -157,18 +157,53 @@
         to { transform: translateX(0); opacity: 1; }
     }
 
-    /* ===== MOBILE RESPONSIVE: scroll horizontally, keep chart intact ===== */
+    /* ===== MOBILE RESPONSIVE: fit chart to mobile frame ===== */
     @media (max-width: 991.98px) {
         .org-chart-scroll {
-            overflow-x: auto;
+            overflow-x: hidden;
             -webkit-overflow-scrolling: touch;
             padding-bottom: 8px;
         }
         .org-chart-scroll > .org-chart,
         .org-chart-scroll > div {
-            min-width: 700px;
+            min-width: 0;
+            width: 100%;
         }
         .chart-title h4 { font-size: 0.95rem; }
+
+        .org-pimpinan-labels {
+            position: static !important;
+            margin-top: 8px;
+        }
+        .org-pimpinan-labels .d-flex {
+            align-items: center !important;
+        }
+    }
+
+    @media (max-width: 575.98px) {
+        .chart-title { padding: 12px 10px; }
+        .chart-title h4 { font-size: 0.78rem; letter-spacing: 0.3px; }
+        .card-struktur .card-body { padding: 12px 8px !important; }
+
+        .org-box { min-width: 74px; padding: 6px 8px; font-size: 9px; letter-spacing: 0; }
+        .org-box-primary { min-width: 130px; padding: 8px 10px; font-size: 10px; }
+        .org-box-secondary { min-width: 98px; padding: 6px 9px; font-size: 9px; }
+        .org-box-tertiary { min-width: 86px; padding: 6px 8px; font-size: 8px; }
+        .org-box-small { min-width: 62px; padding: 4px 6px; font-size: 7px; }
+        .org-box-subdis { min-width: 0; width: 100%; padding: 8px 6px; font-size: 8px; }
+        .org-box-item { min-width: 0; width: 100%; padding: 5px 6px; font-size: 8px; }
+        .org-box .pejabat-name { font-size: 7px; margin-top: 2px; }
+
+        .tree-row.cols-3,
+        .tree-row.cols-4 { gap: 6px; }
+        .tree-col { padding-top: 14px; }
+        .tree-col::before { height: 14px; }
+        .tree-col.tree-col-sm { padding-top: 12px; }
+        .tree-col.tree-col-sm::before { height: 12px; }
+
+        .subdis-container { padding: 8px 6px; }
+        .section-label { font-size: 8px; padding: 4px 8px; }
+        .click-hint { font-size: 0.68rem; }
     }
 </style>
 @endpush
@@ -262,7 +297,7 @@
                 KADISINFOLAHTAAU
                 <span class="pejabat-name">{{ $strukturs['kadisinfolahtaau']->nama_pejabat ?? '-' }}</span>
             </div>
-            <div style="position: absolute; right: 0; top: 0;">
+            <div class="org-pimpinan-labels" style="position: absolute; right: 0; top: 0;">
                 <div class="d-flex flex-column align-items-end gap-1">
                     <span class="section-label">UNSUR PIMPINAN</span>
                     <span class="section-label">UNSUR PEMBANTU PIMPINAN/STAF</span>

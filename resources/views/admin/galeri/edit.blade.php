@@ -11,6 +11,7 @@
     .form-label { font-weight:600; color:#003d82; }
     .btn-simpan { background:linear-gradient(135deg,#001f3f 0%,#0066cc 100%); color:white; font-weight:700; padding:10px 36px; border-radius:8px; font-size:1rem; border:none; transition:transform 0.15s, box-shadow 0.15s; }
     .btn-simpan:hover { color:#fff; transform:translateY(-2px); box-shadow:0 6px 20px rgba(0,61,130,0.35); }
+    .btn-pilih-file { border-radius:8px; }
 </style>
 @endpush
 
@@ -69,7 +70,13 @@
                                     @endif
                                 </div>
                             @endif
-                            <input type="file" name="gambar" class="form-control @error('gambar') is-invalid @enderror" accept="image/*,video/*">
+                            <input type="file" id="gambarInput" name="gambar" class="d-none @error('gambar') is-invalid @enderror" accept="image/*,video/*">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <button type="button" class="btn btn-outline-primary btn-sm btn-pilih-file" onclick="document.getElementById('gambarInput').click()">
+                                    <i class="fas fa-image me-1"></i> Pilih Foto / Video
+                                </button>
+                                <small id="gambarInfo" class="text-muted">Belum ada file dipilih</small>
+                            </div>
                             <small class="text-muted">Biarkan kosong jika tidak ingin mengubah file. Format: JPG, PNG, GIF, WEBP, MP4, MOV, AVI, MKV (Ukuran bebas)</small>
                             @error('gambar')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
@@ -111,5 +118,20 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    (function () {
+        var input = document.getElementById('gambarInput');
+        var info = document.getElementById('gambarInfo');
+        if (!input || !info) return;
+
+        input.addEventListener('change', function () {
+            var file = input.files && input.files.length ? input.files[0] : null;
+            info.textContent = file ? file.name : 'Belum ada file dipilih';
+        });
+    })();
+</script>
+@endpush
 
 

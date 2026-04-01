@@ -34,7 +34,7 @@ class GaleriController extends Controller
             $query->where('judul', 'like', '%' . $request->search . '%');
         }
 
-        $galeris = $query->latest('tanggal_kegiatan')->paginate(12);
+        $galeris = $query->latest('tanggal_kegiatan')->paginate(10);
         $kategoriGaleris = KategoriGaleri::aktif()->orderByRaw("slug = 'video' DESC")->orderBy('id')->get();
 
         return view('admin.galeri.index', compact('galeris', 'kategoriGaleris'));

@@ -34,6 +34,18 @@ return [
 
     'lifetime' => (int) env('SESSION_LIFETIME', 15),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Admin Idle Timeout (Minutes)
+    |--------------------------------------------------------------------------
+    |
+    | This value controls idle timeout specifically for routes protected by
+    | the admin middleware. When exceeded, admin users are logged out.
+    |
+    */
+
+    'admin_idle_timeout' => (int) env('ADMIN_SESSION_IDLE_TIMEOUT', 10),
+
     'expire_on_close' => env('SESSION_EXPIRE_ON_CLOSE', true),
 
     /*

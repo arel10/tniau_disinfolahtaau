@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Casts\EncryptedStringCast;
 use Illuminate\Database\Eloquent\Model;
 
 class AuditLog extends Model
@@ -20,6 +21,7 @@ class AuditLog extends Model
     protected function casts(): array
     {
         return [
+            'user_agent' => EncryptedStringCast::class,
             'metadata'   => 'array',
             'created_at' => 'datetime',
         ];

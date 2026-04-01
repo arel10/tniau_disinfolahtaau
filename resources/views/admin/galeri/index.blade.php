@@ -14,6 +14,18 @@
     .btn-filter:hover { color:#fff; }
     .galeri-card { border:none; box-shadow:0 2px 12px rgba(0,61,130,0.08); border-radius:12px; overflow:hidden; transition:transform 0.2s, box-shadow 0.2s; }
     .galeri-card:hover { transform:translateY(-4px); box-shadow:0 8px 24px rgba(0,61,130,0.18); }
+    .galeri-scroll-grid { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:12px; }
+    .galeri-thumb { height:200px; object-fit:cover; width:100%; }
+    .badge-tipe-foto { background:linear-gradient(135deg,#0066cc,#0099ff); }
+    .badge-tipe-video { background:linear-gradient(135deg,#cc0000,#ff3333); }
+    .admin-actions-overlay { display:flex; gap:6px; padding:10px; border-top:1px solid #eef2f7; background:#fff; }
+    .admin-actions-overlay .btn { border-radius:8px; }
+
+    @media (min-width: 1600px) { .galeri-scroll-grid { grid-template-columns:repeat(6,minmax(0,1fr)); } }
+    @media (max-width: 1200px) { .galeri-scroll-grid { grid-template-columns:repeat(4,minmax(0,1fr)); } }
+    @media (max-width: 991.98px) { .galeri-scroll-grid { grid-template-columns:repeat(3,minmax(0,1fr)); } }
+    @media (max-width: 767.98px) { .galeri-scroll-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+    @media (max-width: 575.98px) { .galeri-scroll-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 </style>
 @endpush
 
@@ -73,62 +85,67 @@
                 </div>
             </div>
 
-            <!-- Galeri Grid (grouped by upload batch) -->
-            <div class="row g-4">
-                @php
-                    // Group paginated items by their group_id so one upload appears as one album
-                    $groups = $galeris->getCollection()->groupBy('group_id');
-                @endphp
+            <!-- Galeri Grid (concept like public gallery + admin actions) -->
+            @php
+                $groups = $galeris->getCollection()->groupBy('group_id');
+            @endphp
 
-                @if($groups->count())
+            @if($groups->count())
+                <div class="galeri-scroll-grid">
                     @foreach($groups as $groupId => $items)
                         @php $galeri = $items->first(); $count = $items->count(); @endphp
-                        <div class="col-md-3">
-                            <div class="card galeri-card h-100 position-relative">
-                                @if($galeri->thumbnail_url)
-                                    <img src="{{ $galeri->thumbnail_url }}" class="card-img-top" alt="{{ $galeri->judul }}" style="height:200px;object-fit:cover;">
-                                @else
-                                    <div class="d-flex align-items-center justify-content-center" style="height:200px;background:linear-gradient(135deg,#001f3f,#003d82);">
-                                        <i class="fas fa-image text-white fa-3x"></i>
-                                    </div>
-                                @endif
-                                <div class="position-absolute top-0 start-0 m-2">
-                                    <span class="badge" style="background:{{ $galeri->tipe == 'foto' ? 'linear-gradient(135deg,#0066cc,#0099ff)' : 'linear-gradient(135deg,#cc0000,#ff3333)' }};">
-                                        <i class="fas fa-{{ $galeri->tipe == 'foto' ? 'image' : 'video' }}"></i> {{ ucfirst($galeri->tipe) }}
-                                    </span>
-                                </div>
-                                @if($count > 1)
-                                    <div class="position-absolute top-0 end-0 m-2">
-                                        <span class="badge bg-dark">{{ $count }} item</span>
-                                    </div>
-                                @endif
-                                <div class="card-body">
-                                    @if($galeri->kategori_galeri)
-                                        <span class="badge mb-2" style="background:linear-gradient(135deg,#001f3f,#003d82);">{{ $galeri->kategoriGaleriRelasi->nama_kategori ?? ucfirst($galeri->kategori_galeri) }}</span>
+                        <div class="galeri-item">
+                            <div class="card galeri-card h-100">
+                                <a href="{{ route('admin.galeri.edit', $galeri->id) }}" class="position-relative d-block">
+                                    @if($galeri->thumbnail_url)
+                                        <img src="{{ $galeri->thumbnail_url }}" class="galeri-thumb" alt="{{ $galeri->judul }}">
+                                    @else
+                                        <div class="d-flex align-items-center justify-content-center" style="height:200px;background:linear-gradient(135deg,#001f3f,#003d82);">
+                                            <i class="fas fa-image text-white fa-3x"></i>
+                                        </div>
                                     @endif
-                                    @if($galeri->judul && !Str::startsWith($galeri->judul, 'WhatsApp'))
-                                    <h6 class="card-title fw-semibold">{{ Str::limit($galeri->judul, 40) }}</h6>
-                                    @endif
-                                    <p class="text-muted small mb-3">
-                                        <i class="fas fa-calendar"></i> {{ $galeri->tanggal_kegiatan ? $galeri->tanggal_kegiatan->format('d M Y') : '-' }}
-                                    </p>
-                                    <div class="d-flex gap-1 w-100">
-                                        <a href="{{ route('admin.galeri.edit', $galeri->id) }}" class="btn btn-outline-warning btn-sm flex-fill"><i class="fas fa-edit"></i></a>
-                                        <form action="{{ route('admin.galeri.destroy', $galeri->id) }}" method="POST" class="flex-fill" onsubmit="return confirm('Yakin ingin menghapus galeri ini?')">
-                                            @csrf @method('DELETE')
-                                            <button type="submit" class="btn btn-outline-danger btn-sm w-100"><i class="fas fa-trash"></i></button>
-                                        </form>
+
+                                    <div class="position-absolute top-0 start-0 m-2">
+                                        <span class="badge {{ $galeri->tipe == 'foto' ? 'badge-tipe-foto' : 'badge-tipe-video' }}">
+                                            <i class="fas fa-{{ $galeri->tipe == 'foto' ? 'image' : 'video' }}"></i> {{ ucfirst($galeri->tipe) }}
+                                        </span>
                                     </div>
+
+                                    @if($count > 1)
+                                        <div class="position-absolute top-0 end-0 m-2">
+                                            <span class="badge bg-dark">{{ $count }} item</span>
+                                        </div>
+                                    @endif
+
+                                    @if($galeri->pdf_path)
+                                        <div class="position-absolute bottom-0 end-0 m-2">
+                                            <span class="badge bg-danger"><i class="fas fa-file-pdf"></i> PDF</span>
+                                        </div>
+                                    @endif
+                                </a>
+
+                                <div class="admin-actions-overlay">
+                                    <a href="{{ route('admin.galeri.edit', $galeri->id) }}" class="btn btn-outline-warning btn-sm flex-fill">
+                                        <i class="fas fa-edit me-1"></i> Edit
+                                    </a>
+                                    <form action="{{ route('admin.galeri.destroy', $galeri->id) }}" method="POST" class="flex-fill" onsubmit="return confirm('Yakin ingin menghapus galeri ini?')">
+                                        @csrf @method('DELETE')
+                                        <button type="submit" class="btn btn-outline-danger btn-sm w-100">
+                                            <i class="fas fa-trash me-1"></i> Hapus
+                                        </button>
+                                    </form>
                                 </div>
                             </div>
                         </div>
                     @endforeach
-                @else
-                    <div class="col-12">
-                        <div class="card setting-card"><div class="card-body text-center text-muted py-5"><i class="fas fa-inbox fa-3x d-block mb-3 opacity-50"></i>Belum ada galeri.</div></div>
+                </div>
+            @else
+                <div class="card setting-card">
+                    <div class="card-body text-center text-muted py-5">
+                        <i class="fas fa-inbox fa-3x d-block mb-3 opacity-50"></i>Belum ada galeri.
                     </div>
-                @endif
-            </div>
+                </div>
+            @endif
 
             @if($galeris->hasPages())
             <div class="d-flex flex-column align-items-center mt-4 gap-2">

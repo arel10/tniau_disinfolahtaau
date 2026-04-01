@@ -44,6 +44,76 @@
         display: flex; align-items: center; justify-content: center;
         flex-shrink: 0;
     }
+
+    @media (max-width: 575.98px) {
+        .contact-list-frame {
+            padding: 10px !important;
+            overflow: hidden;
+        }
+
+        .contact-list-frame .table-responsive {
+            overflow: visible;
+        }
+
+        .contact-list-frame .table-responsive table {
+            min-width: 0 !important;
+            table-layout: fixed;
+        }
+
+        .contact-list-frame table,
+        .contact-list-frame thead,
+        .contact-list-frame tbody,
+        .contact-list-frame tr,
+        .contact-list-frame th,
+        .contact-list-frame td {
+            display: block;
+            width: 100%;
+        }
+
+        .contact-list-frame thead {
+            display: none;
+        }
+
+        .contact-list-frame tbody tr {
+            border: 1px solid #e3e8ef;
+            border-radius: 10px;
+            padding: 8px 10px;
+            margin-bottom: 10px;
+            background: #fff;
+        }
+
+        .contact-list-frame tbody td {
+            border: 0 !important;
+            padding: 5px 0 !important;
+            white-space: normal;
+            word-break: break-word;
+        }
+
+        .contact-list-frame tbody td[data-label]::before {
+            content: attr(data-label);
+            display: block;
+            font-size: 11px;
+            font-weight: 700;
+            color: #003d82;
+            margin-bottom: 2px;
+        }
+
+        .contact-list-frame tbody td:last-child {
+            padding-top: 8px !important;
+        }
+
+        .contact-list-frame tbody td[data-label="Aksi"] {
+            text-align: left !important;
+        }
+
+        .contact-list-frame tbody td[data-label="Aksi"]::before {
+            text-align: left;
+        }
+
+        .contact-list-frame .d-flex.gap-1.justify-content-center {
+            justify-content: flex-start !important;
+        }
+    }
 </style>
 @endpush
 
@@ -137,7 +207,7 @@
                 <div class="card-header">
                     <h6 class="mb-0 fw-bold"><i class="fas fa-inbox me-2"></i>Daftar Pesan Masuk</h6>
                 </div>
-                <div class="card-body p-0">
+                <div class="card-body p-0 contact-list-frame">
                     <div class="table-responsive">
                         <table class="table table-hover mb-0">
                             <thead>
@@ -153,10 +223,10 @@
                             <tbody>
                                 @forelse($kontaks as $kontak)
                                 <tr class="{{ $kontak->status == 'baru' ? 'fw-semibold' : '' }}">
-                                    <td class="ps-4">{{ $kontak->nama }}</td>
-                                    <td>{{ $kontak->email }}</td>
-                                    <td>{{ Str::limit($kontak->subjek, 40) }}</td>
-                                    <td>
+                                    <td class="ps-4" data-label="Nama">{{ $kontak->nama }}</td>
+                                    <td data-label="Email">{{ $kontak->email }}</td>
+                                    <td data-label="Subjek">{{ Str::limit($kontak->subjek, 40) }}</td>
+                                    <td data-label="Status">
                                         @if($kontak->status == 'baru')
                                             <span class="badge" style="background:linear-gradient(135deg,#001f3f,#003d82);">Baru</span>
                                         @elseif($kontak->status == 'dibaca')
@@ -167,8 +237,8 @@
                                             <span class="badge bg-success">Selesai</span>
                                         @endif
                                     </td>
-                                    <td>{{ $kontak->created_at->format('d M Y') }}</td>
-                                    <td class="text-center">
+                                    <td data-label="Tanggal">{{ $kontak->created_at->format('d M Y') }}</td>
+                                    <td class="text-center" data-label="Aksi">
                                         <div class="d-flex gap-1 justify-content-center">
                                             <a href="{{ route('admin.kontak.show', $kontak->id) }}" class="btn btn-sm btn-outline-primary" title="Lihat Detail">
                                                 <i class="fas fa-eye"></i>

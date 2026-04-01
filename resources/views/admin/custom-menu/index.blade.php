@@ -94,6 +94,68 @@
         .menu-actions .quick-add-sub { font-size: 0 !important; padding: 5px 8px !important; border-radius: 8px !important; }
         .menu-actions .sub-toggle-btn i,
         .menu-actions .quick-add-sub i { font-size: 12px !important; }
+
+        /* Built-in menu section: keep title/link readable, move action buttons to next row */
+        .builtin-toggle { align-items: flex-start !important; }
+        .builtin-toggle .menu-info { flex: 1 1 calc(100% - 46px); min-width: 0; }
+        .builtin-toggle .menu-info h6 {
+            display: inline;
+            white-space: nowrap;
+            word-break: normal;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .builtin-toggle .menu-info small {
+            display: inline;
+            margin-left: 8px;
+            white-space: normal;
+        }
+        .builtin-toggle .menu-info small a {
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+        }
+        .builtin-toggle > .builtin-tag,
+        .builtin-toggle > .btn,
+        .builtin-toggle > a.btn {
+            order: 3;
+            margin-top: 6px;
+        }
+        .builtin-toggle > .builtin-tag { margin-left: auto; }
+
+        /* Built-in child rows: keep name + 'Lihat halaman' compact, move Edit below-right */
+        .sub-menus .menu-item-header { align-items: flex-start; }
+        .sub-menus .menu-item-header .menu-info { flex: 1 1 calc(100% - 40px); min-width: 0; }
+        .sub-menus .menu-item-header .menu-info h6 {
+            white-space: nowrap;
+            word-break: normal;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .sub-menus .menu-item-header .menu-info small a {
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+        }
+        .sub-menus .menu-item-header > a.btn {
+            order: 3;
+            margin-left: auto;
+            margin-top: 6px;
+        }
+
+        /* Header adjustments (mobile only): align left icon with title and shrink sizes */
+        .page-header-custom-menu { align-items: flex-start; gap: 10px; flex-wrap: wrap !important; }
+        .page-header-custom-menu > div:first-child { width:40px !important; height:40px !important; border-radius:8px !important; }
+        .page-header-custom-menu .flex-grow-1 { flex: 1 1 calc(100% - 50px); min-width: 0; margin-top: -2px; }
+        .page-header-custom-menu h4 { font-size:16px !important; line-height:1.05; margin-bottom:4px; }
+        .page-header-custom-menu small { font-size:12px !important; }
+
+        /* Make the Add button compact and single-line on mobile */
+        .page-header-custom-menu .btn.btn-primary { font-size:11px !important; padding:6px 9px !important; white-space:nowrap !important; max-width:none; text-align:center; display:inline-flex; align-items:center; line-height:1; margin-left:auto; flex-shrink:0; order:3; }
+        .page-header-custom-menu > .btn.btn-primary { margin-top:2px; }
+        .page-header-custom-menu .btn.btn-primary i { margin-right:6px; font-size:14px; }
     }
 </style>
 @endpush
@@ -104,7 +166,7 @@
         <div class="col-xl-10 col-lg-12">
 
             {{-- Header --}}
-            <div class="d-flex align-items-center mb-4 gap-3">
+            <div class="d-flex align-items-center mb-4 gap-3 page-header-custom-menu">
                 <div style="background:linear-gradient(135deg,#001f3f,#0066cc);border-radius:10px;width:48px;height:48px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
                     <i class="fas fa-bars text-white fa-lg"></i>
                 </div>

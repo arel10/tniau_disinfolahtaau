@@ -10,6 +10,21 @@
     .setting-card .card-header h6 { color:white !important; }
     .badge-admin { background: linear-gradient(135deg, #dc3545, #c82333); }
     .badge-user { background: linear-gradient(135deg, #0d6efd, #0b5ed7); }
+
+    @media (max-width: 575.98px) {
+        .users-list-frame {
+            padding: 0 !important;
+        }
+
+        .users-list-frame .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .users-list-frame .table-responsive table {
+            min-width: 760px;
+        }
+    }
 </style>
 @endpush
 
@@ -63,7 +78,7 @@
             <h6 class="mb-0 fw-bold"><i class="fas fa-list me-2"></i>Daftar User</h6>
             <span class="badge bg-light text-dark">{{ $users->total() }} user</span>
         </div>
-        <div class="card-body p-0">
+        <div class="card-body p-0 users-list-frame">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light">
@@ -80,24 +95,24 @@
                     <tbody>
                         @forelse($users as $user)
                         <tr>
-                            <td>{{ $users->firstItem() + $loop->index }}</td>
-                            <td>
+                            <td data-label="#">{{ $users->firstItem() + $loop->index }}</td>
+                            <td data-label="Nama">
                                 <div class="fw-bold">{{ $user->name }}</div>
                                 @if($user->phone)
                                 <small class="text-muted"><i class="fas fa-phone fa-sm"></i> {{ $user->phone }}</small>
                                 @endif
                             </td>
-                            <td><code>{{ $user->username }}</code></td>
-                            <td>{{ $user->email }}</td>
-                            <td>
+                            <td data-label="Username"><code>{{ $user->username }}</code></td>
+                            <td data-label="Email">{{ $user->email }}</td>
+                            <td data-label="Role">
                                 @if($user->role === 'admin')
                                     <span class="badge badge-admin"><i class="fas fa-shield-alt me-1"></i> Admin</span>
                                 @else
                                     <span class="badge badge-user"><i class="fas fa-user me-1"></i> User</span>
                                 @endif
                             </td>
-                            <td><small>{{ $user->created_at->format('d M Y') }}</small></td>
-                            <td>
+                            <td data-label="Dibuat"><small>{{ $user->created_at->format('d M Y') }}</small></td>
+                            <td data-label="Aksi">
                                 <a href="{{ route('admin.users.edit', $user) }}" class="btn btn-sm btn-outline-primary" title="Edit">
                                     <i class="fas fa-edit"></i>
                                 </a>

@@ -483,6 +483,7 @@
 
     function endChat() {
         if (!sessionId) return;
+        const visitorName = visitorNameEl.value.trim() || null;
         fetch('/livechat/end', {
             method: 'POST',
             headers: {
@@ -491,7 +492,11 @@
                 'Accept': 'application/json'
             },
             credentials: 'same-origin',
-            body: JSON.stringify({ session_id: sessionId })
+            body: JSON.stringify({
+                session_id: sessionId,
+                visitor_name: visitorName,
+                _token: csrf
+            })
         })
         .then(async (r) => {
             const data = await r.json().catch(() => ({}));
@@ -646,6 +651,7 @@
 
         const payload = { state: state };
         if (sessionId) payload.session_id = sessionId;
+        if (csrf) payload._token = csrf;
         // include visitor token from cookie so server can resolve session even when sessionId is missing
         function getCookie(name) {
             const v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
@@ -696,6 +702,7 @@
     function sendPageStateBeacon(state) {
         const payload = { state: state };
         if (sessionId) payload.session_id = sessionId;
+        if (csrf) payload._token = csrf;
         function getCookie(name) {
             const v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
             return v ? v.pop() : null;
@@ -705,7 +712,13 @@
 
         try {
             if (navigator && navigator.sendBeacon) {
-                const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
+                const params = new URLSearchParams();
+                Object.keys(payload).forEach((k) => {
+                    if (payload[k] !== null && typeof payload[k] !== 'undefined') {
+                        params.append(k, String(payload[k]));
+                    }
+                });
+                const blob = new Blob([params.toString()], { type: 'application/x-www-form-urlencoded;charset=UTF-8' });
                 navigator.sendBeacon('/livechat/page-state', blob);
                 console.debug('[live-chat] page-state beacon sent', payload);
                 return;

@@ -132,6 +132,11 @@ class LoginController extends Controller
         // Regenerate session (session fixation protection)
         $request->session()->regenerate();
 
+        // Reset admin idle timer on fresh login so stale values from an old
+        // session do not trigger immediate logout on the next admin page.
+        $request->session()->forget('admin_last_activity_at');
+        $request->session()->put('admin_last_activity_at', time());
+
         // Store fingerprint for session hijacking detection
         session(['_fingerprint' => hash('sha256', $ip . '|' . $request->userAgent())]);
 
